@@ -2,21 +2,20 @@ package com.generic.workflow.executables.activities;
 
 import com.generic.workflow.executables.AdvancedExecutable;
 import com.generic.workflow.executables.ExecutableStatus;
-import com.generic.workflow.executables.IExecutable;
 
 import java.util.UUID;
 
-public abstract class Activity<S extends ExecutableStatus, N extends AdvancedExecutable<S>> extends AdvancedExecutable<S> {
+public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecutable<S> {
 
     protected String activityId;
 
     protected S activityStatus;
 
-    protected N previousActivity;
-    protected N nextActivity;
+    protected Activity<S> previousActivity;
+    protected Activity<S> nextActivity;
 
 
-    public Activity(N previousActivity, N nextActivity) {
+    public Activity(Activity<S> previousActivity, Activity<S> nextActivity) {
         this.activityId = UUID.randomUUID().toString();
         this.previousActivity = previousActivity;
         this.nextActivity = nextActivity;
@@ -26,11 +25,11 @@ public abstract class Activity<S extends ExecutableStatus, N extends AdvancedExe
         this(null, null);
     }
 
-    public void setPreviousActivity(N previousActivity) {
+    public void setPreviousActivity(Activity<S> previousActivity) {
         this.previousActivity = previousActivity;
     }
 
-    public void setNextActivity(N nextActivity) {
+    public void setNextActivity(Activity<S> nextActivity) {
         this.nextActivity = nextActivity;
     }
 

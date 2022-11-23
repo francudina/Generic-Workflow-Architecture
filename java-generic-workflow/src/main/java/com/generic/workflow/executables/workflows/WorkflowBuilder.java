@@ -1,28 +1,18 @@
 package com.generic.workflow.executables.workflows;
 
+import com.generic.workflow.executables.ExecutableStatus;
 import com.generic.workflow.executables.activities.Activity;
 import com.generic.workflow.executables.conditions.Condition;
 
-public final class WorkflowBuilder<A extends Activity> {
+public final class WorkflowBuilder<S extends ExecutableStatus> {
 
-    private A starting;
-    private A current;
+    private Activity<S> starting;
+    private Activity<S> current;
 
-
-    private WorkflowBuilder(A starting, A current) {
-        this.starting = starting;
-        this.current = current;
+    public WorkflowBuilder() {
     }
 
-    private WorkflowBuilder() {
-    }
-
-
-    public static WorkflowBuilder init() {
-        return new WorkflowBuilder();
-    }
-
-    public WorkflowBuilder startWith(A activity) {
+    public WorkflowBuilder<S> startWith(Activity<S> activity) {
 
         if (this.hasStarting())
             return this;
@@ -33,7 +23,7 @@ public final class WorkflowBuilder<A extends Activity> {
         return this;
     }
 
-    public WorkflowBuilder then(A activity) {
+    public WorkflowBuilder<S> then(Activity<S> activity) {
 
         if (!this.hasStarting())
             return this.startWith(activity);
@@ -44,7 +34,7 @@ public final class WorkflowBuilder<A extends Activity> {
         return this;
     }
 
-    public WorkflowBuilder when(Condition condition, A activity) {
+    public WorkflowBuilder<S> when(Condition condition, Activity<S> activity) {
         // todo
 
         return this;
