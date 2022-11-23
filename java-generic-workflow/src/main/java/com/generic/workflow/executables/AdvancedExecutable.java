@@ -1,6 +1,8 @@
 package com.generic.workflow.executables;
 
-public abstract class AdvancedExecutable<S extends ExecutableStatus> implements IExecutable {
+import com.generic.workflow.executables.conditions.ITestable;
+
+public abstract class AdvancedExecutable<S extends ExecutableStatus> implements IExecutable, ITestable {
 
     /**
      * Test if {@link IExecutable} instance could be executed.
@@ -12,7 +14,7 @@ public abstract class AdvancedExecutable<S extends ExecutableStatus> implements 
      * Stop {@link IExecutable} execution if {@link #test()} method returned true and {@link IExecutable} is running.
      * @return true if {@link IExecutable} stopped, false otherwise
      */
-    public abstract boolean stop();
+    public abstract boolean suspend();
 
     /**
      * Get {@link IExecutable} execution status.
