@@ -1,4 +1,4 @@
-package com.generic.workflow.executables;
+package com.generic.workflow.library;
 
 public enum ExecutableStatus {
 

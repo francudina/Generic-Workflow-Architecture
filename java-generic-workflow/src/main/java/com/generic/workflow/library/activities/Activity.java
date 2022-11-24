@@ -1,8 +1,9 @@
-package com.generic.workflow.executables.activities;
+package com.generic.workflow.library.activities;
 
-import com.generic.workflow.executables.AdvancedExecutable;
-import com.generic.workflow.executables.ExecutableStatus;
-import com.generic.workflow.executables.conditions.Condition;
+import com.generic.workflow.library.AdvancedExecutable;
+import com.generic.workflow.library.ExecutableStatus;
+import com.generic.workflow.library.conditions.Condition;
+import com.generic.workflow.library.workflows.Workflow;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
@@ -10,14 +11,16 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-public abstract class Activity<S extends ExecutableStatus, C extends Condition<S>> extends AdvancedExecutable<S> {
+public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecutable<S> {
 
     protected String activityId;
     protected S activityStatus;
 
-    private C defaultCondition;
+    private Workflow<S> parentWorkflow;
 
-    private List<ActivityLink<S, Activity<S, C>, C>> nextActivityOptions;
+    private Condition<S> defaultCondition;
+
+    private List<ActivityLink<S, Activity<S>>> nextActivityOptions;
 
 
     public Activity() {
@@ -26,19 +29,27 @@ public abstract class Activity<S extends ExecutableStatus, C extends Condition<S
     }
 
 
-    private void addNextLink(ActivityLink<S, Activity<S, C>, C> nextActivityLink) {
+    private void addNextLink(ActivityLink<S, Activity<S>> nextActivityLink) {
         this.nextActivityOptions.add(nextActivityLink);
     }
 
     @Override
-    public S status() {
+    public final S status() {
         return this.activityStatus;
     }
 
 
-    public Activity<S, C> setOrResetDefaultCondition(C defaultCondition) {
+    public final Activity<S> setOrResetDefaultCondition(Condition<S> defaultCondition) {
         this.defaultCondition = defaultCondition;
         return this;
+    }
+
+    /**
+     * Setting parent {@link Workflow} for getting additional metadata about {@link Workflow} execution (e.g. starting {@link Activity}).
+     * @param workflow {@link Workflow} of current {@link Activity} instance
+     */
+    public final void setParentWorkflow(Workflow<S> workflow) {
+        this.parentWorkflow = workflow;
     }
 
     /**
@@ -48,7 +59,7 @@ public abstract class Activity<S extends ExecutableStatus, C extends Condition<S
      * @param executeActivity execute next {@link Activity}
      * @return next {@link Activity} to execute
      */
-    public Activity<S, C> next(Activity<S, C> executeActivity) {
+    public final Activity<S> next(Activity<S> executeActivity) {
 
         if (!this.hasDefaultCondition()) {
             log.warn("Activity ignored because default activity condition isn't set!");
@@ -66,7 +77,9 @@ public abstract class Activity<S extends ExecutableStatus, C extends Condition<S
      * @param executeActivity {@link Activity} to execute next based on {@link Condition}
      * @return next {@link Activity} to execute
      */
-    public Activity<S, C> next(C onCondition, Activity<S, C> executeActivity) {
+    public final Activity<S> next(Condition<S> onCondition, Activity<S> executeActivity) {
+
+        executeActivity.setParentWorkflow(this.parentWorkflow);
 
         // adding link and default condition
         this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
@@ -81,8 +94,15 @@ public abstract class Activity<S extends ExecutableStatus, C extends Condition<S
      * @param executeActivity {@link Activity} to execute on fulfilled {@link Condition}
      * @return current (this) {@link Activity}
      */
-    public Activity<S, C> when(C onCondition, Activity<S, C> executeActivity) {
+    public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity) {
 
+        if (this.nextActivityOptions.size() > 1) {
+            log.warn("It's not possible to add two or more 'when' clauses one after another! " +
+                    "Ignoring and returning current activity!");
+            return this;
+        }
+
+        executeActivity.setParentWorkflow(this.parentWorkflow);
         this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
 
         return this;
@@ -96,12 +116,28 @@ public abstract class Activity<S extends ExecutableStatus, C extends Condition<S
      * @param elseExecuteActivity else {@link Activity} that needs to be executed
      * @return current (this) {@link Activity}
      */
-    public Activity<S, C> when(C onCondition, Activity<S, C> executeActivity, Activity<S, C> elseExecuteActivity) {
+    public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity, Activity<S> elseExecuteActivity) {
 
         this.when(onCondition, executeActivity);
         this.when(onCondition.negate(), elseExecuteActivity);
 
         return this;
+    }
+
+    /**
+     * Builds {@link Workflow} from multiple given {@link Activity} objects.
+     * @return {@link Workflow} of multiple {@link Activity} objects
+     */
+    public final Workflow<S> build() {
+        return this.parentWorkflow.build();
+    }
+
+    /**
+     * Return root/starting {@link Activity} object.
+     * @return root/starting {@link Activity} object
+     */
+    public final Activity<S> root() {
+        return this.parentWorkflow.root();
     }
 
 

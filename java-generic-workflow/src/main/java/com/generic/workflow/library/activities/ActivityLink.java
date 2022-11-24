@@ -1,18 +1,18 @@
-package com.generic.workflow.executables.activities;
+package com.generic.workflow.library.activities;
 
-import com.generic.workflow.executables.ExecutableStatus;
-import com.generic.workflow.executables.IExecutable;
-import com.generic.workflow.executables.conditions.Condition;
-import com.generic.workflow.executables.conditions.ITestable;
+import com.generic.workflow.library.ExecutableStatus;
+import com.generic.workflow.library.IExecutable;
+import com.generic.workflow.library.conditions.Condition;
+import com.generic.workflow.library.conditions.ITestable;
 
-public class ActivityLink<S extends ExecutableStatus, A extends Activity<S, C>, C extends Condition<S>>
+public class ActivityLink<S extends ExecutableStatus, A extends Activity<S>>
         implements IExecutable, ITestable<Condition<S>> {
 
-    private final C linkCondition;
-    private final A activity;
+    private final Condition<S> linkCondition;
+    private final Activity<S> activity;
 
 
-    public ActivityLink(C linkConditionToExecuteActivity, A activityToExecute) {
+    public ActivityLink(Condition<S> linkConditionToExecuteActivity, Activity<S> activityToExecute) {
         this.linkCondition = linkConditionToExecuteActivity;
         this.activity = activityToExecute;
     }
@@ -51,7 +51,7 @@ public class ActivityLink<S extends ExecutableStatus, A extends Activity<S, C>, 
         return linkCondition;
     }
 
-    public Activity<S, C> getActivity() {
+    public Activity<S> getActivity() {
         return activity;
     }
 }

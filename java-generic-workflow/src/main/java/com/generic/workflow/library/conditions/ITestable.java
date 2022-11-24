@@ -1,4 +1,4 @@
-package com.generic.workflow.executables.conditions;
+package com.generic.workflow.library.conditions;
 
 public interface ITestable<I> {
     /**

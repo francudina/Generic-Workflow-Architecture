@@ -1,4 +1,4 @@
-package com.generic.workflow.executables.conditions;
+package com.generic.workflow.library.conditions;
 
 public abstract class Condition<I> implements ITestable<I> {
 
