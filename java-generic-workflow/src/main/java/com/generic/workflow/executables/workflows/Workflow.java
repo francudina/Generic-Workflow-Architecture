@@ -1,12 +1,14 @@
 package com.generic.workflow.executables.workflows;
 
 import com.generic.workflow.executables.AdvancedExecutable;
-import com.generic.workflow.executables.IExecutable;
 import com.generic.workflow.executables.ExecutableStatus;
+import com.generic.workflow.executables.conditions.Condition;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
-public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecutable<S> {
+@Slf4j
+public abstract class Workflow<S extends ExecutableStatus, C extends Condition<S>> extends AdvancedExecutable<S> {
 
     protected String workflowId;
 

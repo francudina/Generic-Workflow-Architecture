@@ -4,13 +4,13 @@ import com.generic.workflow.executables.ExecutableStatus;
 import com.generic.workflow.executables.IExecutable;
 import com.generic.workflow.executables.conditions.Condition;
 import com.generic.workflow.executables.conditions.ITestable;
-import com.generic.workflow.executables.conditions.types.ExecutionCondition;
 
 public class ActivityLink<S extends ExecutableStatus, A extends Activity<S, C>, C extends Condition<S>>
         implements IExecutable, ITestable<Condition<S>> {
 
     private final C linkCondition;
     private final A activity;
+
 
     public ActivityLink(C linkConditionToExecuteActivity, A activityToExecute) {
         this.linkCondition = linkConditionToExecuteActivity;
@@ -22,7 +22,7 @@ public class ActivityLink<S extends ExecutableStatus, A extends Activity<S, C>, 
      * @return true if {@link Condition} resulted with true, false otherwise
      */
     public boolean testLink() {
-        return this.linkCondition.test(this.activity.getActivityStatus());
+        return this.linkCondition.test(this.activity.status());
     }
 
     /**
@@ -32,7 +32,7 @@ public class ActivityLink<S extends ExecutableStatus, A extends Activity<S, C>, 
      */
     @Override
     public boolean test(Condition<S> conditionToTest) {
-        return conditionToTest.test(this.activity.getActivityStatus());
+        return conditionToTest.test(this.activity.status());
     }
 
     /**
