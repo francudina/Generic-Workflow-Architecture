@@ -39,12 +39,12 @@ public class ActivityTest {
 
         // test branches:
         // - left
-        boolean left_couldPass_1 = right_activityTreeBranch.test();
-        boolean left_couldPass_2 = right_activityTreeBranch.test(new CustomCondition_1());
-        boolean left_couldPass_3 = right_activityTreeBranch.test(new CustomCondition_2());
-        boolean left_passed = right_activityTreeBranch.execute();
-        var left_status = right_activityTreeBranch.status();
-        boolean left_suspended = right_activityTreeBranch.suspend();
+        boolean left_couldPass_1 = left_activityTreeBranch.test();
+        boolean left_couldPass_2 = left_activityTreeBranch.test(new CustomCondition_1());
+        boolean left_couldPass_3 = left_activityTreeBranch.test(new CustomCondition_2());
+        boolean left_passed = left_activityTreeBranch.execute();
+        var left_status = left_activityTreeBranch.status();
+        boolean left_suspended = left_activityTreeBranch.suspend();
         // - right
         boolean right_couldPass_1 = right_activityTreeBranch.test();
         boolean right_couldPass_2 = right_activityTreeBranch.test(new CustomCondition_1());
