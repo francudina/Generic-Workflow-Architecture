@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -20,7 +21,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
     private Condition<S> defaultCondition;
 
-    private List<ActivityLink<S, Activity<S>>> nextActivityOptions;
+    private final List<ActivityLink<S, Activity<S>>> nextActivityOptions;
 
 
     public Activity() {
@@ -40,6 +41,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
 
     public final Activity<S> setOrResetDefaultCondition(Condition<S> defaultCondition) {
+        // TODO set default condition to workflow
         this.defaultCondition = defaultCondition;
         return this;
     }
@@ -80,6 +82,12 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      */
     public final Activity<S> next(Condition<S> onCondition, Activity<S> executeActivity) {
 
+        if (this.isStartingActivityReturned()) {
+            log.warn("Starting activity was returned, so there's no way " +
+                    "to add another activity to existing workflow activity!");
+            return this;
+        }
+
         executeActivity.setParentWorkflow(this.parentWorkflow);
 
         // adding link and default condition
@@ -99,6 +107,12 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      * @return current (this) {@link Activity}
      */
     public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity) {
+
+        if (this.isStartingActivityReturned()) {
+            log.warn("Starting activity was returned, so there's no way " +
+                    "to add another activity to existing workflow activity!");
+            return this;
+        }
 
         executeActivity.setParentWorkflow(this.parentWorkflow);
         this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
@@ -120,7 +134,13 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      */
     public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity, Activity<S> elseExecuteActivity) {
 
-        if (this.isLastPossibleActivityAdded() || this.nextActivityOptions.size() > 0) {
+        if (this.isStartingActivityReturned()) {
+            log.warn("Starting activity was returned, so there's no way " +
+                    "to add another activity to existing workflow activity!");
+            return this;
+        }
+
+        if (this.isLastActivityOptionAdded() || this.containsChildren()) {
             log.warn("It's not possible to add two or more if-else 'when' clauses in the same workflow! " +
                     "Create another workflow branch or use 'when' clause with onCondition & executeActivity params! " +
                     "Ignoring and returning current activity!");
@@ -156,12 +176,54 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
         return this.parentWorkflow.root();
     }
 
+    /**
+     * Method executes {@link #lastUsableChild()} method recursively while trying to find
+     * {@link Activity} with multiple children {@link Activity} objects or no objects at all.
+     * <p>
+     * This is useful when there's need to get to the last {@link Workflow} {@link Activity}
+     * object starting from root {@link Activity} node.
+     *
+     * @return last {@link Activity} in the branch
+     */
+    public final Activity<S> lastUsableChild() {
+        // checks if current activity has multiple or no children at all
+        if (this.hasMoreThanOneChildren() || !this.containsChildren())
+            return this;
+
+        // case if activity contains only one child
+        return this.nextActivityOptions.get(0)
+                .getActivity()
+                .lastUsableChild();
+    }
+
     private void setLastPossibleActivity() {
         this.parentWorkflow.setLastPossibleActivity();
     }
 
-    private boolean isLastPossibleActivityAdded() {
-        return this.parentWorkflow.isLastPossibleActivityAdded();
+    private boolean isLastActivityOptionAdded() {
+        return this.parentWorkflow != null && this.parentWorkflow.isLastActivityOptionAdded();
+    }
+
+    private boolean isStartingActivityReturned() {
+        return this.parentWorkflow != null && this.parentWorkflow.isStartingActivityReturned();
+    }
+
+    /**
+     * Method check's if {@link Activity} contains more than one children {@link Activity} objects.
+     *
+     * @return true if {@link Activity} contains more than one children {@link Activity} objects, false otherwise
+     */
+    public final boolean hasMoreThanOneChildren() {
+        return this.nextActivityOptions.size() > 1;
+    }
+
+    /**
+     * Method check's if {@link Activity} contains children {@link Activity} objects.
+     *
+     * @return if if {@link Activity} contains children {@link Activity} objects, false otherwise
+     */
+    public final boolean containsChildren() {
+        return this.nextActivityOptions.size() > 0;
     }
 
     private boolean hasDefaultCondition() {

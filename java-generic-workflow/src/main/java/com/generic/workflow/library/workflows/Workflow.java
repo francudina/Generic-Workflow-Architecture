@@ -3,9 +3,7 @@ package com.generic.workflow.library.workflows;
 import com.generic.workflow.library.AdvancedExecutable;
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
-import com.generic.workflow.library.conditions.Condition;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.asm.Advice;
 
 import java.util.UUID;
 
@@ -15,15 +13,16 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
     protected String workflowId;
     protected S workflowStatus;
 
-    protected boolean lastPossibleActivityAdded;
-
+    protected boolean lastActivityOptionAdded;
+    protected boolean startingActivityReturned;
 
     protected Activity<S> startingActivity;
 
 
     public Workflow() {
         this.workflowId = UUID.randomUUID().toString();
-        this.lastPossibleActivityAdded = false;
+        this.lastActivityOptionAdded = false;
+        this.startingActivityReturned = false;
     }
 
 
@@ -34,10 +33,17 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
 
     public final Activity<S> startWith(Activity<S> activity) {
 
-        activity.setParentWorkflow(this);
-        this.startingActivity = activity;
+        Activity<S> firstActivity = activity.root();
 
-        return activity;
+        if (firstActivity == null)
+            firstActivity = activity;
+
+        // TODO update this workflow context/variables from another activity
+        //  workflow e.g. set lastActivityOptionAdded
+        activity.setParentWorkflow(this);
+        this.startingActivity = firstActivity;
+
+        return activity.lastUsableChild();
     }
 
     /**
@@ -60,14 +66,19 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
      * @return root/starting {@link Activity} object
      */
     public Activity<S> root() {
+        this.startingActivityReturned = true;
         return this.startingActivity;
     }
 
     public final void setLastPossibleActivity() {
-        this.lastPossibleActivityAdded = true;
+        this.lastActivityOptionAdded = true;
     }
 
-    public final boolean isLastPossibleActivityAdded() {
-        return this.lastPossibleActivityAdded;
+    public final boolean isLastActivityOptionAdded() {
+        return this.lastActivityOptionAdded;
+    }
+
+    public final boolean isStartingActivityReturned() {
+        return this.startingActivityReturned;
     }
 }
