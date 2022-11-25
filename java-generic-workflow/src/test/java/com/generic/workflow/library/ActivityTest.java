@@ -4,10 +4,12 @@ import com.generic.workflow.library.activity.*;
 import com.generic.workflow.library.workflow.CustomWorkflow;
 import org.junit.jupiter.api.Test;
 
+import javax.naming.OperationNotSupportedException;
+
 public class ActivityTest {
 
     @Test
-    void creatingCustomActivity() {
+    void creatingCustomActivity() throws OperationNotSupportedException {
 
         // left branch
         var left_activityTreeBranch = new CustomWorkflow()

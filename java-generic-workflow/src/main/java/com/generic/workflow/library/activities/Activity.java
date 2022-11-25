@@ -6,9 +6,9 @@ import com.generic.workflow.library.conditions.Condition;
 import com.generic.workflow.library.workflows.Workflow;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -21,7 +21,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
     private Condition<S> defaultCondition;
 
-    private final List<ActivityLink<S, Activity<S>>> nextActivityOptions;
+    private final List<ActivityLink<S>> nextActivityOptions;
 
 
     public Activity() {
@@ -30,7 +30,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
     }
 
 
-    private void addNextLink(ActivityLink<S, Activity<S>> nextActivityLink) {
+    private void addNextLink(ActivityLink<S> nextActivityLink) {
         this.nextActivityOptions.add(nextActivityLink);
     }
 
@@ -48,11 +48,17 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
     /**
      * Setting parent {@link Workflow} for getting additional metadata about {@link Workflow} execution (e.g. starting {@link Activity}).
+     * {@link Workflow} is set recursively for each child {@link Activity}.
      *
      * @param workflow {@link Workflow} of current {@link Activity} instance
      */
     public final void setParentWorkflow(Workflow<S> workflow) {
+        // setting parent workflow
         this.parentWorkflow = workflow;
+        // iterating over children activities and setting new workflow instance!
+        for (ActivityLink<S> link : this.nextActivityOptions) {
+            link.getActivity().setParentWorkflow(workflow);
+        }
     }
 
     /**
@@ -88,12 +94,20 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
             return this;
         }
 
+        // check if there's already added last option!
+        boolean hasLast = executeActivity.isLastActivityOptionAdded();
+        if (hasLast)
+            // add it to current workflow!
+            this.setLastPossibleActivity();
+
+        // update children activities for current workflow
         executeActivity.setParentWorkflow(this.parentWorkflow);
 
         // adding link and default condition
         this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
 
-        return executeActivity;
+        // return last child of that activity, so to continue with piping!
+        return executeActivity.lastUsableChild();
     }
 
     /**
@@ -114,7 +128,15 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
             return this;
         }
 
+        // check if there's already added last option!
+        boolean hasLast = executeActivity.isLastActivityOptionAdded();
+        if (hasLast)
+            // add it to current workflow!
+            this.setLastPossibleActivity();
+
+        // update children activities for current workflow
         executeActivity.setParentWorkflow(this.parentWorkflow);
+
         this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
 
         return this;
@@ -140,7 +162,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
             return this;
         }
 
-        if (this.isLastActivityOptionAdded() || this.containsChildren()) {
+        if (this.isLastActivityOptionAdded() || this.hasChildren()) {
             log.warn("It's not possible to add two or more if-else 'when' clauses in the same workflow! " +
                     "Create another workflow branch or use 'when' clause with onCondition & executeActivity params! " +
                     "Ignoring and returning current activity!");
@@ -163,7 +185,9 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return {@link Workflow} of multiple {@link Activity} objects
      */
-    public final Workflow<S> build() {
+    public final Workflow<S> build() throws OperationNotSupportedException {
+        if (!this.hasWorkflow())
+            throw new OperationNotSupportedException("Cannot build Activity if there's no workflow set!");
         return this.parentWorkflow.build();
     }
 
@@ -172,7 +196,9 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return root/starting {@link Activity} object
      */
-    public final Activity<S> root() {
+    public final Activity<S> root() throws OperationNotSupportedException {
+        if (!this.hasWorkflow())
+            throw new OperationNotSupportedException("Cannot get root Activity if there's no workflow set!");
         return this.parentWorkflow.root();
     }
 
@@ -187,7 +213,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      */
     public final Activity<S> lastUsableChild() {
         // checks if current activity has multiple or no children at all
-        if (this.hasMoreThanOneChildren() || !this.containsChildren())
+        if (this.hasMoreThanOneChildren() || !this.hasChildren())
             return this;
 
         // case if activity contains only one child
@@ -222,11 +248,15 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return if if {@link Activity} contains children {@link Activity} objects, false otherwise
      */
-    public final boolean containsChildren() {
+    public final boolean hasChildren() {
         return this.nextActivityOptions.size() > 0;
     }
 
     private boolean hasDefaultCondition() {
         return this.defaultCondition != null;
+    }
+
+    public final boolean hasWorkflow() {
+        return this.parentWorkflow != null;
     }
 }

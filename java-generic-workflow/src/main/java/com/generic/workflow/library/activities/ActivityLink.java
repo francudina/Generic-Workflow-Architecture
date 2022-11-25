@@ -5,7 +5,7 @@ import com.generic.workflow.library.IExecutable;
 import com.generic.workflow.library.conditions.Condition;
 import com.generic.workflow.library.conditions.ITestable;
 
-public class ActivityLink<S extends ExecutableStatus, A extends Activity<S>>
+public class ActivityLink<S extends ExecutableStatus>
         implements IExecutable, ITestable<Condition<S>> {
 
     private final Condition<S> linkCondition;

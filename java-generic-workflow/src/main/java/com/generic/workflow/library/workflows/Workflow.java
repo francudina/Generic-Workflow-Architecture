@@ -5,6 +5,7 @@ import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.UUID;
 
 @Slf4j
@@ -31,18 +32,26 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
         return this.workflowStatus;
     }
 
-    public final Activity<S> startWith(Activity<S> activity) {
+    public final Activity<S> startWith(Activity<S> activity) throws OperationNotSupportedException {
 
-        Activity<S> firstActivity = activity.root();
+        Activity<S> firstActivity = activity;
+        // checking if given activity has already another workflow!
+        if (activity.hasWorkflow()) {
 
-        if (firstActivity == null)
-            firstActivity = activity;
+            // getting root of the given activity to set starting activity!
+            firstActivity = activity.root();
+            // getting workflow instance to get params!
+            var workflow = firstActivity.build();
 
-        // TODO update this workflow context/variables from another activity
-        //  workflow e.g. set lastActivityOptionAdded
-        activity.setParentWorkflow(this);
+            // important for part with multiple "when" methods are called!
+            this.lastActivityOptionAdded = workflow.lastActivityOptionAdded;
+        }
+
+        // setting parent workflow
+        firstActivity.setParentWorkflow(this);
         this.startingActivity = firstActivity;
 
+        // getting last element of the workflow to continue adding new elements, if possible!
         return activity.lastUsableChild();
     }
 
