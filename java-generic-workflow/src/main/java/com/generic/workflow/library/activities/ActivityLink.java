@@ -19,6 +19,7 @@ public class ActivityLink<S extends ExecutableStatus, A extends Activity<S>>
 
     /**
      * Test if {@link #linkCondition} would result with true or false.
+     *
      * @return true if {@link Condition} resulted with true, false otherwise
      */
     public boolean testLink() {
@@ -27,6 +28,7 @@ public class ActivityLink<S extends ExecutableStatus, A extends Activity<S>>
 
     /**
      * Test if input conditionToTest param would result with true or false.
+     *
      * @param conditionToTest condition to test on activity status
      * @return true if {@link Condition} resulted with true, false otherwise
      */
@@ -37,6 +39,7 @@ public class ActivityLink<S extends ExecutableStatus, A extends Activity<S>>
 
     /**
      * If {@link #linkCondition} {@link #testLink()} resulted with true, then {@link #activity} could be executed.
+     *
      * @return true if {@link #linkCondition} {@link #testLink()} and {@link #activity} execution resulted with true,
      *          false otherwise
      */

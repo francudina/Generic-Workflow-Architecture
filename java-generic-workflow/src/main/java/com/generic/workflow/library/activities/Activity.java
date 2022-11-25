@@ -46,6 +46,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
     /**
      * Setting parent {@link Workflow} for getting additional metadata about {@link Workflow} execution (e.g. starting {@link Activity}).
+     *
      * @param workflow {@link Workflow} of current {@link Activity} instance
      */
     public final void setParentWorkflow(Workflow<S> workflow) {
@@ -89,18 +90,15 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
     /**
      * Executing {@link Activity} if {@link Condition} if fulfilled.
+     * <p>
+     * When there's multiple Conditions with same test() outcome, "First Come, First Served"
+     * logic will be used while picking next activity.
      *
      * @param onCondition {@link Condition} which should be fulfilled
      * @param executeActivity {@link Activity} to execute on fulfilled {@link Condition}
      * @return current (this) {@link Activity}
      */
     public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity) {
-
-        if (this.nextActivityOptions.size() > 1) {
-            log.warn("It's not possible to add two or more 'when' clauses one after another! " +
-                    "Ignoring and returning current activity!");
-            return this;
-        }
 
         executeActivity.setParentWorkflow(this.parentWorkflow);
         this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
@@ -109,7 +107,11 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
     }
 
     /**
-     * Executing {@link Activity} if {@link Condition} if fulfilled, otherwise else {@link Activity}
+     * Executing {@link Activity} if {@link Condition} if fulfilled, otherwise else {@link Activity}.
+     * <p>
+     * This method could be called only once, after that new workflow should be created
+     * or instead of {@link #when(Condition, Activity, Activity)} (this) method, {@link #when(Condition, Activity)}
+     * method should be used for more than 2 conditions linked to the same parent {@link Activity}.
      *
      * @param onCondition {@link Condition} which should be fulfilled
      * @param executeActivity {@link Activity} to execute on fulfilled {@link Condition}
@@ -118,14 +120,27 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      */
     public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity, Activity<S> elseExecuteActivity) {
 
+        if (this.isLastPossibleActivityAdded() || this.nextActivityOptions.size() > 0) {
+            log.warn("It's not possible to add two or more if-else 'when' clauses in the same workflow! " +
+                    "Create another workflow branch or use 'when' clause with onCondition & executeActivity params! " +
+                    "Ignoring and returning current activity!");
+            return this;
+        }
+
+        // adding if activity on condition
         this.when(onCondition, executeActivity);
+        // adding else activity on negated condition
         this.when(onCondition.negate(), elseExecuteActivity);
+
+        // only one if-else case is possible per Activity
+        this.setLastPossibleActivity();
 
         return this;
     }
 
     /**
      * Builds {@link Workflow} from multiple given {@link Activity} objects.
+     *
      * @return {@link Workflow} of multiple {@link Activity} objects
      */
     public final Workflow<S> build() {
@@ -134,12 +149,20 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
     /**
      * Return root/starting {@link Activity} object.
+     *
      * @return root/starting {@link Activity} object
      */
     public final Activity<S> root() {
         return this.parentWorkflow.root();
     }
 
+    private void setLastPossibleActivity() {
+        this.parentWorkflow.setLastPossibleActivity();
+    }
+
+    private boolean isLastPossibleActivityAdded() {
+        return this.parentWorkflow.isLastPossibleActivityAdded();
+    }
 
     private boolean hasDefaultCondition() {
         return this.defaultCondition != null;

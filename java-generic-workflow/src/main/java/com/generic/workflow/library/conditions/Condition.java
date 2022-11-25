@@ -14,6 +14,7 @@ public abstract class Condition<I> implements ITestable<I> {
 
     /**
      * Negate original {@link Condition} {@link #test(I)} result.
+     *
      * @return negated {@link #test(I)}
      */
     public abstract <C extends Condition<I>> C negate();

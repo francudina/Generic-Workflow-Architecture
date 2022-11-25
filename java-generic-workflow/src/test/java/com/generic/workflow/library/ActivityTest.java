@@ -26,7 +26,8 @@ public class ActivityTest {
         var right_activityTreeBranch = new CustomWorkflow()
                 .startWith(new CustomActivity_2())
                 .next(new CustomCondition_1(), new CustomActivity_2())
-                .when(new CustomCondition_2(), new CustomActivity_1(), new CustomActivity_2())
+                .when(new CustomCondition_2(), new CustomActivity_1())
+                .when(new CustomCondition_1(), new CustomActivity_2())
                 .root();
 
         // root node
