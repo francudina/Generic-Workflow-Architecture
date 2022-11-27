@@ -19,8 +19,6 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
 
     private Workflow<S> parentWorkflow;
 
-    private Condition<S> defaultCondition;
-
     private final List<ActivityLink<S>> nextActivityOptions;
 
 
@@ -40,9 +38,11 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
     }
 
 
-    public final Activity<S> setOrResetDefaultCondition(Condition<S> defaultCondition) {
-        // TODO set default condition to workflow
-        this.defaultCondition = defaultCondition;
+    public final Activity<S> setOrResetDefaultCondition(Condition<S> defaultCondition) throws OperationNotSupportedException {
+        if (!this.hasWorkflow())
+            throw new OperationNotSupportedException("Cannot add default condition to Activity if there's no workflow set!");
+
+        this.parentWorkflow.setDefaultCondition(defaultCondition);
         return this;
     }
 
@@ -75,7 +75,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
             return this;
         }
 
-        return this.next(this.defaultCondition, executeActivity);
+        return this.next(this.parentWorkflow.getDefaultCondition(), executeActivity);
     }
 
     /**
@@ -246,17 +246,25 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
     /**
      * Method check's if {@link Activity} contains children {@link Activity} objects.
      *
-     * @return if if {@link Activity} contains children {@link Activity} objects, false otherwise
+     * @return true if {@link Activity} contains children {@link Activity} objects, false otherwise
      */
     public final boolean hasChildren() {
         return this.nextActivityOptions.size() > 0;
     }
 
     private boolean hasDefaultCondition() {
-        return this.defaultCondition != null;
+        return this.parentWorkflow != null && this.parentWorkflow.getDefaultCondition() != null;
     }
 
     public final boolean hasWorkflow() {
         return this.parentWorkflow != null;
+    }
+
+    public List<ActivityLink<S>> getNextActivityOptions() {
+        return nextActivityOptions;
+    }
+
+    public String getActivityId() {
+        return activityId;
     }
 }

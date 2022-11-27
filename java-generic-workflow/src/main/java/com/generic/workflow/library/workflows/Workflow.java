@@ -3,6 +3,7 @@ package com.generic.workflow.library.workflows;
 import com.generic.workflow.library.AdvancedExecutable;
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
+import com.generic.workflow.library.conditions.Condition;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.naming.OperationNotSupportedException;
@@ -18,6 +19,7 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
     protected boolean startingActivityReturned;
 
     protected Activity<S> startingActivity;
+    protected Condition<S> defaultCondition;
 
 
     public Workflow() {
@@ -26,12 +28,26 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
         this.startingActivityReturned = false;
     }
 
-
+    /**
+     * Get {@link Workflow} status.
+     *
+     * @return {@link Workflow} status
+     */
     @Override
     public final S status() {
         return this.workflowStatus;
     }
 
+    /**
+     * Adding first {@link Activity} to the whole {@link Workflow}. This is mostly done to make it easier
+     * to track the {@link Workflow} starting point, and to override others {@link Workflow} variables.
+     *
+     * @param activity {@link Activity} which is used to start the {@link Workflow} iteration, it can also
+     *                                 be another root node of another {@link Workflow} object to append
+     *                                 it to new {@link Workflow} iteration
+     * @return last usable {@link Activity} to continue adding another nodes
+     * @throws OperationNotSupportedException @see {@link Activity#build()}
+     */
     public final Activity<S> startWith(Activity<S> activity) throws OperationNotSupportedException {
 
         Activity<S> firstActivity = activity;
@@ -64,9 +80,16 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
         return this;
     }
 
+    /**
+     * Executes {@link Workflow} from {@link #startingActivity}.
+     * @return true if execution succeeded, false otherwise
+     */
     @Override
     public final boolean execute() {
-        return this.startingActivity.execute();
+        log.info("Executing workflow with id: {}", this.workflowId);
+        boolean passed = new WorkflowExecutionHandler<>(this).execute();
+        log.info("Finished executing workflow with id: {} - passed? {}", this.workflowId, passed);
+        return passed;
     }
 
     /**
@@ -79,15 +102,51 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
         return this.startingActivity;
     }
 
+    /**
+     * Mark that last {@link Activity} was added, and there's no chance to add another {@link Activity}
+     * to current {@link Workflow} object.
+     */
     public final void setLastPossibleActivity() {
         this.lastActivityOptionAdded = true;
     }
 
+    /**
+     * Check's if last option was added to the {@link Workflow} {@link Activity}.
+     *
+     * @return true, if last option was added to the {@link Workflow} {@link Activity}, false otherwise
+     */
     public final boolean isLastActivityOptionAdded() {
         return this.lastActivityOptionAdded;
     }
 
+    /**
+     * Check's if {@link Workflow#startingActivity} was returned
+     * when {@link Workflow#root()} method was triggered.
+     *
+     * @return if {@link Workflow#startingActivity} was returned
+     *          when {@link Workflow#root()} method was triggered, false otherwise
+     */
     public final boolean isStartingActivityReturned() {
         return this.startingActivityReturned;
+    }
+
+    public Activity<S> getStartingActivity() {
+        return startingActivity;
+    }
+
+    public String getWorkflowId() {
+        return workflowId;
+    }
+
+    public S getWorkflowStatus() {
+        return workflowStatus;
+    }
+
+    public Condition<S> getDefaultCondition() {
+        return defaultCondition;
+    }
+
+    public void setDefaultCondition(Condition<S> defaultCondition) {
+        this.defaultCondition = defaultCondition;
     }
 }
