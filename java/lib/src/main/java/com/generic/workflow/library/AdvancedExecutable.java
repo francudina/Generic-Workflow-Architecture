@@ -8,6 +8,8 @@ public abstract class AdvancedExecutable
         implements IExecutable<ExecutionPayload<?>>, ITestable<Condition<ExecutableStatus>>
 {
 
+    protected boolean isSuspended;
+
     /**
      * Test if {@link IExecutable} instance can be executed before calling execute.
      * Like checking required data, validating, ...
@@ -28,4 +30,8 @@ public abstract class AdvancedExecutable
      * @see ExecutableStatus
      */
     public abstract ExecutableStatus status();
+
+    public final boolean isSuspended() {
+        return this.isSuspended;
+    }
 }

@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.activity;
+package com.generic.workflow.library.library.happypath.activity;
 
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
@@ -17,11 +17,6 @@ public class CustomActivity_0 extends Activity {
     public boolean testBefore(ExecutionPayload<?> inputPayload) {
         int a = 1, b = 1;
         return a + b == 2;
-    }
-
-    @Override
-    public boolean suspend() {
-        return true;
     }
 
     @Override

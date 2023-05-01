@@ -5,9 +5,10 @@ import com.generic.workflow.library.activities.Activity;
 import com.generic.workflow.library.activities.ActivityLink;
 import com.generic.workflow.library.payload.ExecutionPayload;
 
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class WorkflowExecutionHandler
+public final class WorkflowExecutionHandler
         implements IExecutable<ExecutionPayload<?>>
 {
 
@@ -26,7 +27,7 @@ public class WorkflowExecutionHandler
      * @return true if execution succeeded, false otherwise
      */
     @Override
-    public boolean execute(ExecutionPayload<?> payloadInput) {
+    public boolean execute(ExecutionPayload<?> payloadInput) throws Exception {
 
         Activity startingActivity = this.workflow.getStartingActivity();
         if (startingActivity == null) {
@@ -44,12 +45,22 @@ public class WorkflowExecutionHandler
      * @param activity {@link Activity} to execute
      * @return true if execution succeeded, false otherwise
      */
-    private boolean executeSingleActivity(Activity activity, ExecutionPayload<?> payloadInput) {
+    private boolean executeSingleActivity(Activity activity, ExecutionPayload<?> payloadInput) throws Exception {
 
-        log.info(String.format("Testing activity: %s", activity.getActivityId()));
+        // if further execution is suspended, stop next activity from execution
+        if (this.workflow.isSuspended())
+            return false;
+
+        log.info(String.format("\nTesting activity: %s", activity.getActivityId()));
         boolean testingResult = activity.testBefore(payloadInput);
         log.info(String.format("Activity with id '%s' could execute without errors? %s",
                 activity.getActivityId(), testingResult));
+
+        if (!testingResult)
+            throw new Exception(String.format(
+                    "Execution of activity '%s' would result with failure!",
+                    activity.getActivityId()
+            ));
 
         log.info(String.format("Executing activity: %s", activity.getActivityId()));
         boolean result = activity.execute(payloadInput);
@@ -71,12 +82,12 @@ public class WorkflowExecutionHandler
                 nextActivityId, foundNext));
 
         if (!foundNext) {
-            log.info(String.format("Skipping execution of next activity for current with id: %s",
+            log.info(String.format("Skipping execution of next activity for current with id: %s\n",
                     activity.getActivityId()));
             return true;
         }
 
-        log.info("Executing next activity ...");
+        log.info("Executing next activity ...\n");
         return this.executeSingleActivity(nextActivity, activity.getExecutionResult());
     }
 }

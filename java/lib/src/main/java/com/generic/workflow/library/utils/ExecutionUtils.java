@@ -5,11 +5,12 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ExecutionUtils {
+public final class ExecutionUtils {
 
     private static final Logger log = Logger.getLogger(ExecutionUtils.class.getName());
 
@@ -55,5 +56,10 @@ public class ExecutionUtils {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         return sw.toString();
+    }
+
+    public static <T> String newIdForClass(T object) {
+        return String.format("%s-%s",
+                object.getClass().getSimpleName(), UUID.randomUUID().toString().substring(0, 7));
     }
 }

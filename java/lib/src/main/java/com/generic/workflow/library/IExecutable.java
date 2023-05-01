@@ -10,5 +10,5 @@ public interface IExecutable
      * Start {@link IExecutable} execution.
      * @return true if {@link IExecutable} started, false otherwise
      */
-    boolean execute(P inputPayload);
+    boolean execute(P inputPayload) throws Exception;
 }

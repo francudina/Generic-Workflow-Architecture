@@ -1,22 +1,15 @@
-package com.generic.workflow.library.library.workflow;
+package com.generic.workflow.library.library.realtest.workflow;
 
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.conditions.Condition;
-import com.generic.workflow.library.library.payload.CustomPayload_1;
 import com.generic.workflow.library.payload.ExecutionPayload;
 import com.generic.workflow.library.workflows.Workflow;
 
-public class CustomWorkflow extends Workflow {
+public class MorningRoutine extends Workflow {
 
     @Override
     public boolean testBefore(ExecutionPayload<?> inputPayload) {
-        int a = 1, b = 1;
-        return a + b == 2;
-    }
-
-    @Override
-    public boolean suspend() {
-        return true;
+        return false;
     }
 
     @Override

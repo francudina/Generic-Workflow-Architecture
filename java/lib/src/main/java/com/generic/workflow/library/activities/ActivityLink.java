@@ -6,7 +6,7 @@ import com.generic.workflow.library.conditions.Condition;
 import com.generic.workflow.library.conditions.ITestable;
 import com.generic.workflow.library.payload.ExecutionPayload;
 
-public class ActivityLink
+public final class ActivityLink
         implements IExecutable<ExecutionPayload<?>>, ITestable<Condition<ExecutableStatus>>
 {
 
@@ -46,7 +46,7 @@ public class ActivityLink
      *          false otherwise
      */
     @Override
-    public boolean execute(ExecutionPayload<?> payloadInput) {
+    public boolean execute(ExecutionPayload<?> payloadInput) throws Exception {
         if (!this.testLink())
             return false;
         return this.activity.execute(payloadInput);

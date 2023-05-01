@@ -5,9 +5,9 @@ import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
 import com.generic.workflow.library.conditions.Condition;
 import com.generic.workflow.library.payload.ExecutionPayload;
+import com.generic.workflow.library.utils.ExecutionUtils;
 
 import javax.naming.OperationNotSupportedException;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 public abstract class Workflow extends AdvancedExecutable {
@@ -25,9 +25,10 @@ public abstract class Workflow extends AdvancedExecutable {
 
 
     public Workflow() {
-        this.workflowId = UUID.randomUUID().toString();
+        this.workflowId = ExecutionUtils.newIdForClass(this);
         this.lastActivityOptionAdded = false;
         this.startingActivityReturned = false;
+        this.isSuspended = false;
     }
 
     /**
@@ -89,11 +90,18 @@ public abstract class Workflow extends AdvancedExecutable {
      * @return true if execution succeeded, false otherwise
      */
     @Override
-    public final boolean execute(ExecutionPayload<?> payloadInput) {
+    public final boolean execute(ExecutionPayload<?> payloadInput) throws Exception {
         log.info(String.format("Executing workflow with id: %s", this.workflowId));
-        boolean passed = new WorkflowExecutionHandler(this).execute(payloadInput);
+        boolean passed = new WorkflowExecutionHandler(this)
+                .execute(payloadInput);
         log.info(String.format("Finished executing workflow with id: %s - passed? %s", this.workflowId, passed));
         return passed;
+    }
+
+    @Override
+    public final boolean suspend() {
+        this.isSuspended = true;
+        return true;
     }
 
     /**
@@ -140,10 +148,6 @@ public abstract class Workflow extends AdvancedExecutable {
 
     public String getWorkflowId() {
         return workflowId;
-    }
-
-    public ExecutableStatus getWorkflowStatus() {
-        return workflowStatus;
     }
 
     public Condition<ExecutableStatus> getDefaultCondition() {

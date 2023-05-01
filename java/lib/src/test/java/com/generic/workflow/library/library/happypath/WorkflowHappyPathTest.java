@@ -1,18 +1,18 @@
-package com.generic.workflow.library.library;
+package com.generic.workflow.library.library.happypath;
 
-import com.generic.workflow.library.library.activity.*;
-import com.generic.workflow.library.library.payload.CustomPayload_1;
-import com.generic.workflow.library.library.payload.CustomPayload_2;
-import com.generic.workflow.library.library.payload.CustomPayload_3;
-import com.generic.workflow.library.library.workflow.CustomWorkflow;
+import com.generic.workflow.library.library.happypath.activity.*;
+import com.generic.workflow.library.library.happypath.payload.CustomPayload_1;
+import com.generic.workflow.library.library.happypath.payload.CustomPayload_2;
+import com.generic.workflow.library.library.happypath.payload.CustomPayload_3;
+import com.generic.workflow.library.library.happypath.workflow.CustomWorkflow;
 import org.junit.jupiter.api.Test;
 
 import javax.naming.OperationNotSupportedException;
 
-public class WorkflowTest {
+public class WorkflowHappyPathTest {
 
     @Test
-    void happy_path() throws OperationNotSupportedException {
+    void happy_path() throws Exception {
 
         var payload_1 = new CustomPayload_1(null);
         var payload_2 = new CustomPayload_2(null);

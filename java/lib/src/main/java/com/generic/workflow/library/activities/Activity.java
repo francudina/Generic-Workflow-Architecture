@@ -4,12 +4,12 @@ import com.generic.workflow.library.AdvancedExecutable;
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.conditions.Condition;
 import com.generic.workflow.library.payload.ExecutionPayload;
+import com.generic.workflow.library.utils.ExecutionUtils;
 import com.generic.workflow.library.workflows.Workflow;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 public abstract class Activity extends AdvancedExecutable {
@@ -24,10 +24,13 @@ public abstract class Activity extends AdvancedExecutable {
 
     private final List<ActivityLink> nextActivityOptions;
 
+    private boolean isIfElseCase;
+
 
     public Activity() {
-        this.activityId = UUID.randomUUID().toString();
+        this.activityId = ExecutionUtils.newIdForClass(this);
         this.nextActivityOptions = new LinkedList<>();
+        this.isIfElseCase = false;
     }
 
 
@@ -36,8 +39,17 @@ public abstract class Activity extends AdvancedExecutable {
         return this.activityStatus;
     }
 
+    /**
+     * It is not possible to suspend {@link Activity} during execution.
+     *
+     * @return always false (not suspended)
+     */
+    @Override
+    public final boolean suspend() {
+        return false;
+    }
 
-    public final Activity setOrResetDefaultCondition(Condition defaultCondition)
+    public final Activity setOrResetDefaultCondition(Condition<ExecutableStatus> defaultCondition)
             throws OperationNotSupportedException
     {
         if (!this.hasWorkflow())
@@ -71,7 +83,7 @@ public abstract class Activity extends AdvancedExecutable {
      * @param executeActivity execute next {@link Activity}
      * @return next {@link Activity} to execute
      */
-    public final Activity next(Activity executeActivity) {
+    public final Activity next(Activity executeActivity) throws OperationNotSupportedException {
 
         if (!this.hasDefaultCondition()) {
             log.warning("Activity ignored because default activity condition isn't set!");
@@ -89,15 +101,21 @@ public abstract class Activity extends AdvancedExecutable {
      * @param executeActivity {@link Activity} to execute next based on {@link Condition}
      * @return next {@link Activity} to execute
      */
-    public final Activity next(Condition<ExecutableStatus> onCondition, Activity executeActivity) {
+    public final Activity next(
+            Condition<ExecutableStatus> onCondition,
+            Activity executeActivity
+    ) throws OperationNotSupportedException {
 
-        if (this.isStartingActivityReturned()) {
-            log.warning("Starting activity was returned, so there's no way " +
+        if (this.isStartingActivityReturned())
+            throw new OperationNotSupportedException("Starting activity was returned, so there's no way " +
                     "to add another activity to existing workflow activity!");
-            return this;
-        }
 
-        // check if there's already added last option!
+        // if there was already if-else before added!
+        if (this.isLastActivityOptionAdded())
+            throw new OperationNotSupportedException("It's not possible to add if 'when' clause in the same workflow after if-else 'when' clause! " +
+                    "Create another workflow branch! Ignoring and returning current activity!");
+
+        // check if there's already added last option in got activity!
         boolean hasLast = executeActivity.isLastActivityOptionAdded();
         if (hasLast)
             // add it to current workflow!
@@ -123,15 +141,21 @@ public abstract class Activity extends AdvancedExecutable {
      * @param executeActivity {@link Activity} to execute on fulfilled {@link Condition}
      * @return current (this) {@link Activity}
      */
-    public final Activity when(Condition<ExecutableStatus> onCondition, Activity executeActivity) {
+    public final Activity when(
+            Condition<ExecutableStatus> onCondition,
+            Activity executeActivity
+    ) throws OperationNotSupportedException {
 
-        if (this.isStartingActivityReturned()) {
-            log.warning("Starting activity was returned, so there's no way " +
+        if (this.isStartingActivityReturned())
+            throw new OperationNotSupportedException("Starting activity was returned, so there's no way " +
                     "to add another activity to existing workflow activity!");
-            return this;
-        }
 
-        // check if there's already added last option!
+        // if there was already if-else before added!
+        if (this.isLastActivityOptionAdded() && !this.isIfElseCase)
+            throw new OperationNotSupportedException("It's not possible to add if 'when' clause in the same workflow after if-else 'when' clause! " +
+                    "Create another workflow branch! Ignoring and returning current activity!");
+
+        // check if there's already added last option in got activity!
         boolean hasLast = executeActivity.isLastActivityOptionAdded();
         if (hasLast)
             // add it to current workflow!
@@ -161,7 +185,7 @@ public abstract class Activity extends AdvancedExecutable {
             Condition<ExecutableStatus> onCondition,
             Activity executeActivity,
             Activity elseExecuteActivity
-    ) {
+    ) throws OperationNotSupportedException {
 
         if (this.isStartingActivityReturned()) {
             log.warning("Starting activity was returned, so there's no way " +
@@ -176,6 +200,9 @@ public abstract class Activity extends AdvancedExecutable {
             return this;
         }
 
+        // special case when adding multiple nested left and right subtrees into root node!
+        this.isIfElseCase = true;
+
         // adding if activity on condition
         this.when(onCondition, executeActivity);
         // adding else activity on negated condition
@@ -183,6 +210,9 @@ public abstract class Activity extends AdvancedExecutable {
 
         // only one if-else case is possible per Activity
         this.setLastPossibleActivity();
+
+        // reset if-else case to false
+        this.isIfElseCase = false;
 
         return this;
     }
