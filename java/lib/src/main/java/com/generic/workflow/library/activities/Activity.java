@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public abstract class Activity extends AdvancedExecutable
-{
+public abstract class Activity extends AdvancedExecutable {
 
     private final Logger log = Logger.getLogger(this.getClass().getName());
 

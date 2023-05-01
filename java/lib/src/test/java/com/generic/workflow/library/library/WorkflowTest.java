@@ -3,6 +3,7 @@ package com.generic.workflow.library.library;
 import com.generic.workflow.library.library.activity.*;
 import com.generic.workflow.library.library.payload.CustomPayload_1;
 import com.generic.workflow.library.library.payload.CustomPayload_2;
+import com.generic.workflow.library.library.payload.CustomPayload_3;
 import com.generic.workflow.library.library.workflow.CustomWorkflow;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,7 @@ public class WorkflowTest {
 
         var payload_1 = new CustomPayload_1(null);
         var payload_2 = new CustomPayload_2(null);
+        var payload_3 = new CustomPayload_3(null);
 
         // left branch
         var wf_left = new CustomWorkflow();
@@ -64,33 +66,33 @@ public class WorkflowTest {
         var act_right_status = right_activityTreeBranch.status();
         boolean act_right_suspended = right_activityTreeBranch.suspend();
         // - main
-        boolean act_main_couldPass_1 = main_root.testBefore(null);
+        boolean act_main_couldPass_1 = main_root.testBefore(payload_3);
+        boolean act_passed = main_root.execute(payload_3);
         boolean act_main_couldPass_2 = main_root.testAfter(new CustomCondition_1());
         boolean act_main_couldPass_3 = main_root.testAfter(new CustomCondition_2());
-        boolean act_passed = main_root.execute(null);
         var act_status = main_root.status();
         boolean act_suspended = main_root.suspend();
 
         // test branches:
         // - left
-        boolean left_couldPass_1 = wf_left.testBefore(null);
+        boolean left_couldPass_1 = wf_left.testBefore(payload_1);
+        boolean left_passed = wf_left.execute(payload_1);
         boolean left_couldPass_2 = wf_left.testAfter(new CustomCondition_1());
         boolean left_couldPass_3 = wf_left.testAfter(new CustomCondition_2());
-        boolean left_passed = wf_left.execute(null);
         var left_status = wf_left.status();
         boolean left_suspended = wf_left.suspend();
         // - right
-        boolean right_couldPass_1 = wf_right.testBefore(null);
+        boolean right_couldPass_1 = wf_right.testBefore(payload_2);
+        boolean right_passed = wf_right.execute(payload_2);
         boolean right_couldPass_2 = wf_right.testAfter(new CustomCondition_1());
         boolean right_couldPass_3 = wf_right.testAfter(new CustomCondition_2());
-        boolean right_passed = wf_right.execute(null);
         var right_status = wf_right.status();
         boolean right_suspended = wf_right.suspend();
         // - main
-        boolean main_couldPass_1 = wf_root.testBefore(null);
+        boolean main_couldPass_1 = wf_root.testBefore(payload_3);
+        boolean passed = wf_root.execute(payload_3);
         boolean main_couldPass_2 = wf_root.testAfter(new CustomCondition_1());
         boolean main_couldPass_3 = wf_root.testAfter(new CustomCondition_2());
-        boolean passed = wf_root.execute(null);
         var status = wf_root.status();
         boolean suspended = wf_root.suspend();
 
@@ -98,9 +100,9 @@ public class WorkflowTest {
         var workflow = main_root.build();
 
         // test, execute, monitor & suspend workflow
-        boolean workflow_couldPass_1 = workflow.testBefore(null);
+        boolean workflow_couldPass_1 = workflow.testBefore(payload_3);
+        boolean workflow_passed = workflow.execute(payload_3);
         boolean workflow_couldPass_2 = workflow.testAfter(new CustomCondition_2());
-        boolean workflow_passed = workflow.execute(null);
         var workflow_status = workflow.status();
         boolean workflow_suspended = workflow.suspend();
 
