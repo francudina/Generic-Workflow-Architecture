@@ -2,10 +2,10 @@ package com.generic.workflow.library.conditions;
 
 public abstract class Condition<I> implements ITestable<I> {
 
-    protected boolean negateCondition;
+    protected boolean isNegatedCondition;
 
     public Condition(boolean negateCondition) {
-        this.negateCondition = negateCondition;
+        this.isNegatedCondition = negateCondition;
     }
 
     public Condition() {
@@ -13,9 +13,9 @@ public abstract class Condition<I> implements ITestable<I> {
     }
 
     /**
-     * Negate original {@link Condition} {@link #test(I)} result.
+     * Negate original {@link Condition} {@link #testAfter(I)} result.
      *
-     * @return negated {@link #test(I)}
+     * @return negated {@link #testAfter(I)}
      */
     public abstract <C extends Condition<I>> C negate();
 }

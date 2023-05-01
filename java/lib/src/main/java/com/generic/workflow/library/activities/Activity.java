@@ -12,20 +12,18 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public abstract class Activity
-        <S extends ExecutableStatus, P extends ExecutionPayload<?>>
-        extends AdvancedExecutable<S, P>
+public abstract class Activity extends AdvancedExecutable
 {
 
     private final Logger log = Logger.getLogger(this.getClass().getName());
 
     protected String activityId;
-    protected S activityStatus;
-    protected P executionResult;
+    protected ExecutableStatus activityStatus;
+    protected ExecutionPayload<?> executionResult;
 
-    private Workflow<S, P> parentWorkflow;
+    private Workflow parentWorkflow;
 
-    private final List<ActivityLink<S, P>> nextActivityOptions;
+    private final List<ActivityLink> nextActivityOptions;
 
 
     public Activity() {
@@ -35,32 +33,34 @@ public abstract class Activity
 
 
     @Override
-    public final S status() {
+    public final ExecutableStatus status() {
         return this.activityStatus;
     }
 
 
-    public final Activity<S, P> setOrResetDefaultCondition(Condition<S> defaultCondition)
+    public final Activity setOrResetDefaultCondition(Condition defaultCondition)
             throws OperationNotSupportedException
     {
         if (!this.hasWorkflow())
-            throw new OperationNotSupportedException("Cannot add default condition to Activity if there's no workflow set!");
+            throw new OperationNotSupportedException(
+                    "Cannot add default condition to Activity if there's no workflow set!");
 
         this.parentWorkflow.setDefaultCondition(defaultCondition);
         return this;
     }
 
     /**
-     * Setting parent {@link Workflow} for getting additional metadata about {@link Workflow} execution (e.g. starting {@link Activity}).
+     * Setting parent {@link Workflow} for getting additional metadata
+     * about {@link Workflow} execution (e.g. starting {@link Activity}).
      * {@link Workflow} is set recursively for each child {@link Activity}.
      *
      * @param workflow {@link Workflow} of current {@link Activity} instance
      */
-    public final void setParentWorkflow(Workflow<S, P> workflow) {
+    public final void setParentWorkflow(Workflow workflow) {
         // setting parent workflow
         this.parentWorkflow = workflow;
         // iterating over children activities and setting new workflow instance!
-        for (ActivityLink<S, P> link : this.nextActivityOptions) {
+        for (ActivityLink link : this.nextActivityOptions) {
             link.getActivity().setParentWorkflow(workflow);
         }
     }
@@ -72,7 +72,7 @@ public abstract class Activity
      * @param executeActivity execute next {@link Activity}
      * @return next {@link Activity} to execute
      */
-    public final Activity<S, P> next(Activity<S, P> executeActivity) {
+    public final Activity next(Activity executeActivity) {
 
         if (!this.hasDefaultCondition()) {
             log.warning("Activity ignored because default activity condition isn't set!");
@@ -90,7 +90,7 @@ public abstract class Activity
      * @param executeActivity {@link Activity} to execute next based on {@link Condition}
      * @return next {@link Activity} to execute
      */
-    public final Activity<S, P> next(Condition<S> onCondition, Activity<S, P> executeActivity) {
+    public final Activity next(Condition<ExecutableStatus> onCondition, Activity executeActivity) {
 
         if (this.isStartingActivityReturned()) {
             log.warning("Starting activity was returned, so there's no way " +
@@ -108,7 +108,7 @@ public abstract class Activity
         executeActivity.setParentWorkflow(this.parentWorkflow);
 
         // adding link and default condition
-        this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
+        this.addNextLink(new ActivityLink(onCondition, executeActivity));
 
         // return last child of that activity, so to continue with piping!
         return executeActivity.lastUsableChild();
@@ -124,7 +124,7 @@ public abstract class Activity
      * @param executeActivity {@link Activity} to execute on fulfilled {@link Condition}
      * @return current (this) {@link Activity}
      */
-    public final Activity<S, P> when(Condition<S> onCondition, Activity<S, P> executeActivity) {
+    public final Activity when(Condition<ExecutableStatus> onCondition, Activity executeActivity) {
 
         if (this.isStartingActivityReturned()) {
             log.warning("Starting activity was returned, so there's no way " +
@@ -141,7 +141,7 @@ public abstract class Activity
         // update children activities for current workflow
         executeActivity.setParentWorkflow(this.parentWorkflow);
 
-        this.addNextLink(new ActivityLink<>(onCondition, executeActivity));
+        this.addNextLink(new ActivityLink(onCondition, executeActivity));
 
         return this;
     }
@@ -158,10 +158,10 @@ public abstract class Activity
      * @param elseExecuteActivity else {@link Activity} that needs to be executed
      * @return current (this) {@link Activity}
      */
-    public final Activity<S, P> when(
-            Condition<S> onCondition,
-            Activity<S, P> executeActivity,
-            Activity<S, P> elseExecuteActivity
+    public final Activity when(
+            Condition<ExecutableStatus> onCondition,
+            Activity executeActivity,
+            Activity elseExecuteActivity
     ) {
 
         if (this.isStartingActivityReturned()) {
@@ -193,7 +193,7 @@ public abstract class Activity
      *
      * @return {@link Workflow} of multiple {@link Activity} objects
      */
-    public final Workflow<S, P> build() throws OperationNotSupportedException {
+    public final Workflow build() throws OperationNotSupportedException {
         if (!this.hasWorkflow())
             throw new OperationNotSupportedException("Cannot build Activity if there's no workflow set!");
         return this.parentWorkflow.build();
@@ -204,7 +204,7 @@ public abstract class Activity
      *
      * @return root/starting {@link Activity} object
      */
-    public final Activity<S, P> root() throws OperationNotSupportedException {
+    public final Activity root() throws OperationNotSupportedException {
         if (!this.hasWorkflow())
             throw new OperationNotSupportedException("Cannot get root Activity if there's no workflow set!");
         return this.parentWorkflow.root();
@@ -219,7 +219,7 @@ public abstract class Activity
      *
      * @return last {@link Activity} in the branch
      */
-    public final Activity<S, P> lastUsableChild() {
+    public final Activity lastUsableChild() {
         // checks if current activity has multiple or no children at all
         if (this.hasMoreThanOneChildren() || !this.hasChildren())
             return this;
@@ -230,7 +230,7 @@ public abstract class Activity
                 .lastUsableChild();
     }
 
-    public final P getExecutionResult() {
+    public final ExecutionPayload<?> getExecutionResult() {
         return this.executionResult;
     }
 
@@ -256,7 +256,7 @@ public abstract class Activity
         return this.parentWorkflow != null;
     }
 
-    public List<ActivityLink<S, P>> getNextActivityOptions() {
+    public List<ActivityLink> getNextActivityOptions() {
         return nextActivityOptions;
     }
 
@@ -276,7 +276,7 @@ public abstract class Activity
         return this.parentWorkflow != null && this.parentWorkflow.isStartingActivityReturned();
     }
 
-    private void addNextLink(ActivityLink<S, P> nextActivityLink) {
+    private void addNextLink(ActivityLink nextActivityLink) {
         this.nextActivityOptions.add(nextActivityLink);
     }
 

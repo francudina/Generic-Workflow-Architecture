@@ -5,7 +5,7 @@ import com.generic.workflow.library.ExecutableStatus;
 public class CustomNegatedCondition extends CustomCondition_1 {
 
     @Override
-    public boolean test(ExecutableStatus inputToTest) {
+    public boolean testAfter(ExecutableStatus inputToTest) {
         return false;
     }
 }

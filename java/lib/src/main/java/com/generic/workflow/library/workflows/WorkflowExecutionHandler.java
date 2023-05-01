@@ -1,6 +1,5 @@
 package com.generic.workflow.library.workflows;
 
-import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.IExecutable;
 import com.generic.workflow.library.activities.Activity;
 import com.generic.workflow.library.activities.ActivityLink;
@@ -9,15 +8,14 @@ import com.generic.workflow.library.payload.ExecutionPayload;
 import java.util.logging.Logger;
 
 public class WorkflowExecutionHandler
-        <S extends ExecutableStatus, P extends ExecutionPayload<?>>
-        implements IExecutable<P>
+        implements IExecutable<ExecutionPayload<?>>
 {
 
     private final Logger log = Logger.getLogger(this.getClass().getName());
 
-    private final Workflow<S, P> workflow;
+    private final Workflow workflow;
 
-    public WorkflowExecutionHandler(Workflow<S, P> workflow) {
+    public WorkflowExecutionHandler(Workflow workflow) {
         this.workflow = workflow;
     }
 
@@ -28,9 +26,9 @@ public class WorkflowExecutionHandler
      * @return true if execution succeeded, false otherwise
      */
     @Override
-    public boolean execute(P payloadInput) {
+    public boolean execute(ExecutionPayload<?> payloadInput) {
 
-        Activity<S, P> startingActivity = this.workflow.getStartingActivity();
+        Activity startingActivity = this.workflow.getStartingActivity();
         if (startingActivity == null) {
             log.warning("Workflow Starting activity does not exist, skipping ...");
             return false;
@@ -46,10 +44,10 @@ public class WorkflowExecutionHandler
      * @param activity {@link Activity} to execute
      * @return true if execution succeeded, false otherwise
      */
-    private boolean executeSingleActivity(Activity<S, P> activity, P payloadInput) {
+    private boolean executeSingleActivity(Activity activity, ExecutionPayload<?> payloadInput) {
 
         log.info(String.format("Testing activity: %s", activity.getActivityId()));
-        boolean testingResult = activity.test();
+        boolean testingResult = activity.testBefore(payloadInput);
         log.info(String.format("Activity with id '%s' could execute without errors? %s",
                 activity.getActivityId(), testingResult));
 
@@ -61,8 +59,8 @@ public class WorkflowExecutionHandler
                         "(status: %s) in total of %s next possible options!",
                 activity.status(), activity.getNextActivityOptions().size()));
 
-        Activity<S, P> nextActivity = activity.getNextActivityOptions().stream()
-                .filter(option -> option.getLinkCondition().test(activity.status()))
+        Activity nextActivity = activity.getNextActivityOptions().stream()
+                .filter(option -> option.getLinkCondition().testAfter(activity.status()))
                 .map(ActivityLink::getActivity)
                 .findFirst()
                 .orElse(null);

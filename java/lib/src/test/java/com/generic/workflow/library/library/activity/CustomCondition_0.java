@@ -11,7 +11,7 @@ public class CustomCondition_0 extends Condition<ExecutableStatus> {
     }
 
     @Override
-    public boolean test(ExecutableStatus inputToTest) {
+    public boolean testAfter(ExecutableStatus inputToTest) {
         return true;
     }
 }

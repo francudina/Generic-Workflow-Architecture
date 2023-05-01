@@ -7,15 +7,14 @@ import com.generic.workflow.library.conditions.ITestable;
 import com.generic.workflow.library.payload.ExecutionPayload;
 
 public class ActivityLink
-        <S extends ExecutableStatus, P extends ExecutionPayload<?>>
-        implements IExecutable<P>, ITestable<Condition<S>>
+        implements IExecutable<ExecutionPayload<?>>, ITestable<Condition<ExecutableStatus>>
 {
 
-    private final Condition<S> linkCondition;
-    private final Activity<S, P> activity;
+    private final Condition<ExecutableStatus> linkCondition;
+    private final Activity activity;
 
 
-    public ActivityLink(Condition<S> linkConditionToExecuteActivity, Activity<S, P> activityToExecute) {
+    public ActivityLink(Condition<ExecutableStatus> linkConditionToExecuteActivity, Activity activityToExecute) {
         this.linkCondition = linkConditionToExecuteActivity;
         this.activity = activityToExecute;
     }
@@ -26,7 +25,7 @@ public class ActivityLink
      * @return true if {@link Condition} resulted with true, false otherwise
      */
     public boolean testLink() {
-        return this.linkCondition.test(this.activity.status());
+        return this.linkCondition.testAfter(this.activity.status());
     }
 
     /**
@@ -36,8 +35,8 @@ public class ActivityLink
      * @return true if {@link Condition} resulted with true, false otherwise
      */
     @Override
-    public boolean test(Condition<S> conditionToTest) {
-        return conditionToTest.test(this.activity.status());
+    public boolean testAfter(Condition<ExecutableStatus> conditionToTest) {
+        return conditionToTest.testAfter(this.activity.status());
     }
 
     /**
@@ -47,17 +46,17 @@ public class ActivityLink
      *          false otherwise
      */
     @Override
-    public boolean execute(P payloadInput) {
+    public boolean execute(ExecutionPayload<?> payloadInput) {
         if (!this.testLink())
             return false;
         return this.activity.execute(payloadInput);
     }
 
-    public Condition<S> getLinkCondition() {
+    public Condition<ExecutableStatus> getLinkCondition() {
         return linkCondition;
     }
 
-    public Activity<S, P> getActivity() {
+    public Activity getActivity() {
         return activity;
     }
 }
