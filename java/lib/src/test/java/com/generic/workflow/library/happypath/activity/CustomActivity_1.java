@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.happypath.activity;
+package com.generic.workflow.library.happypath.activity;
 
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;

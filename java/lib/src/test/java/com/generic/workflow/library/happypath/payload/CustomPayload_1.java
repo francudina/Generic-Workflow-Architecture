@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.happypath.payload;
+package com.generic.workflow.library.happypath.payload;
 
 import com.generic.workflow.library.payload.ExecutionPayload;
 

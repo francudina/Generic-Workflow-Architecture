@@ -1,11 +1,11 @@
-package com.generic.workflow.library.library.realtest;
+package com.generic.workflow.library.realtest;
 
 import com.generic.workflow.library.activities.Activity;
-import com.generic.workflow.library.library.realtest.activity.Breakfast;
-import com.generic.workflow.library.library.realtest.activity.PrepareInformation;
-import com.generic.workflow.library.library.realtest.activity.Training;
-import com.generic.workflow.library.library.realtest.confitions.DefaultFinishedCondition;
-import com.generic.workflow.library.library.realtest.workflow.MorningRoutine;
+import com.generic.workflow.library.realtest.activity.Breakfast;
+import com.generic.workflow.library.realtest.activity.PrepareInformation;
+import com.generic.workflow.library.realtest.activity.Training;
+import com.generic.workflow.library.realtest.confitions.DefaultFinishedCondition;
+import com.generic.workflow.library.realtest.workflow.MorningRoutine;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;

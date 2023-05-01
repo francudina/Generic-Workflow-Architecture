@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.realtest.workflow;
+package com.generic.workflow.library.realtest.workflow;
 
 import com.generic.workflow.library.payload.ExecutionPayload;
 import com.generic.workflow.library.workflows.Workflow;

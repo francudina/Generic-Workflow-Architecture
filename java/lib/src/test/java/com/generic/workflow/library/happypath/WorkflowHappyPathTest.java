@@ -1,13 +1,11 @@
-package com.generic.workflow.library.library.happypath;
+package com.generic.workflow.library.happypath;
 
-import com.generic.workflow.library.library.happypath.activity.*;
-import com.generic.workflow.library.library.happypath.payload.CustomPayload_1;
-import com.generic.workflow.library.library.happypath.payload.CustomPayload_2;
-import com.generic.workflow.library.library.happypath.payload.CustomPayload_3;
-import com.generic.workflow.library.library.happypath.workflow.CustomWorkflow;
+import com.generic.workflow.library.happypath.activity.*;
+import com.generic.workflow.library.happypath.payload.CustomPayload_1;
+import com.generic.workflow.library.happypath.payload.CustomPayload_2;
+import com.generic.workflow.library.happypath.payload.CustomPayload_3;
+import com.generic.workflow.library.happypath.workflow.CustomWorkflow;
 import org.junit.jupiter.api.Test;
-
-import javax.naming.OperationNotSupportedException;
 
 public class WorkflowHappyPathTest {
 

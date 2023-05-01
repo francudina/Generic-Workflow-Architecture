@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.happypath.workflow;
+package com.generic.workflow.library.happypath.workflow;
 
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.conditions.Condition;

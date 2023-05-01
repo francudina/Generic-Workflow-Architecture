@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.realtest.activity.inputs;
+package com.generic.workflow.library.realtest.activity.inputs;
 
 import java.time.Instant;
 

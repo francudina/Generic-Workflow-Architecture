@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.realtest.confitions;
+package com.generic.workflow.library.realtest.confitions;
 
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.conditions.Condition;

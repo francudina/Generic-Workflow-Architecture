@@ -1,4 +1,4 @@
-package com.generic.workflow.library.library.happypath.activity;
+package com.generic.workflow.library.happypath.activity;
 
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
@@ -9,20 +9,20 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.logging.Logger;
 
-public class CustomActivity_0 extends Activity {
+public class CustomActivity_2 extends Activity {
 
     private final Logger log = Logger.getLogger(this.getClass().getName());
 
     @Override
     public boolean testBefore(ExecutionPayload<?> inputPayload) {
-        int a = 1, b = 1;
-        return a + b == 2;
+        int a = 2, b = 2;
+        return a + b == 4;
     }
 
     @Override
     public boolean execute(ExecutionPayload<?> payloadInput) {
         var date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
-        log.info(String.format("Executing CustomActivity_0: %s", date));
+        log.info(String.format("Executing CustomActivity_2: %s", date));
         return true;
     }
 
