@@ -1,8 +1,8 @@
 package com.generic.workflow.library.library.realtest.activity.inputs;
 
-import java.util.Date;
+import java.time.Instant;
 
 public class BreakFastInput {
 
-    private Date currentDate;
+    private Instant currentDateTime;
 }

@@ -5,7 +5,6 @@ import com.generic.workflow.library.activities.Activity;
 import com.generic.workflow.library.activities.ActivityLink;
 import com.generic.workflow.library.payload.ExecutionPayload;
 
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 public final class WorkflowExecutionHandler
@@ -62,6 +61,9 @@ public final class WorkflowExecutionHandler
                     activity.getActivityId()
             ));
 
+        // set input data for activity
+        activity.setInputResult(payloadInput);
+
         log.info(String.format("Executing activity: %s", activity.getActivityId()));
         boolean result = activity.execute(payloadInput);
         log.info(String.format("Activity with id '%s' executed without errors? %s", activity.getActivityId(), result));
@@ -69,6 +71,9 @@ public final class WorkflowExecutionHandler
         log.info(String.format("Searching for next activity that matches output status " +
                         "(status: %s) in total of %s next possible options!",
                 activity.status(), activity.getNextActivityOptions().size()));
+
+        this.workflow.workflowStatus = activity.status();
+        this.workflow.addNewHistoryActivity(activity);
 
         Activity nextActivity = activity.getNextActivityOptions().stream()
                 .filter(option -> option.getLinkCondition().testAfter(activity.status()))
@@ -88,6 +93,12 @@ public final class WorkflowExecutionHandler
         }
 
         log.info("Executing next activity ...\n");
-        return this.executeSingleActivity(nextActivity, activity.getExecutionResult());
+
+        // if activity did not produce any result, then try to send its input data!
+        var inputData = activity.getExecutionResult() == null?
+                activity.getInputResult() :
+                activity.getExecutionResult();
+
+        return this.executeSingleActivity(nextActivity, inputData);
     }
 }

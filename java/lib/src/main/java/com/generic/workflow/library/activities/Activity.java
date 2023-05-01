@@ -10,6 +10,7 @@ import com.generic.workflow.library.workflows.Workflow;
 import javax.naming.OperationNotSupportedException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public abstract class Activity extends AdvancedExecutable {
@@ -18,6 +19,7 @@ public abstract class Activity extends AdvancedExecutable {
 
     protected String activityId;
     protected ExecutableStatus activityStatus;
+    protected ExecutionPayload<?> inputResult;
     protected ExecutionPayload<?> executionResult;
 
     private Workflow parentWorkflow;
@@ -47,6 +49,31 @@ public abstract class Activity extends AdvancedExecutable {
     @Override
     public final boolean suspend() {
         return false;
+    }
+
+    /**
+     * Helper: Testing if input data has all required params!
+     *
+     * @param requiredKeys required keys from payload
+     * @param inputPayload got input data
+     * @return true if contains all from required keys
+     */
+    public final boolean testBeforeHelper(
+            Set<String> requiredKeys,
+            ExecutionPayload<?> inputPayload
+    ) {
+        return inputPayload.toMap().keySet().containsAll(requiredKeys);
+    }
+
+    /**
+     * Testing if condition satisfies result status!
+     *
+     * @param inputToTest condition to test
+     * @return if condition is satisfied
+     */
+    @Override
+    public boolean testAfter(Condition<ExecutableStatus> inputToTest) {
+        return inputToTest.testAfter(this.status());
     }
 
     public final Activity setOrResetDefaultCondition(Condition<ExecutableStatus> defaultCondition)
@@ -259,8 +286,20 @@ public abstract class Activity extends AdvancedExecutable {
                 .lastUsableChild();
     }
 
+    public final void setInputResult(ExecutionPayload<?> inputResult) {
+        this.inputResult = inputResult;
+    }
+
+    public final ExecutionPayload<?> getInputResult() {
+        return this.inputResult;
+    }
+
     public final ExecutionPayload<?> getExecutionResult() {
         return this.executionResult;
+    }
+
+    public final void setExecutionResult(ExecutionPayload<?> executionResult) {
+        this.executionResult = executionResult;
     }
 
     /**
@@ -284,6 +323,7 @@ public abstract class Activity extends AdvancedExecutable {
     public final boolean hasWorkflow() {
         return this.parentWorkflow != null;
     }
+
 
     public List<ActivityLink> getNextActivityOptions() {
         return nextActivityOptions;

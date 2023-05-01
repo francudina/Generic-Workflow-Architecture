@@ -4,8 +4,8 @@ public abstract class Condition<I> implements ITestable<I> {
 
     protected boolean isNegatedCondition;
 
-    public Condition(boolean negateCondition) {
-        this.isNegatedCondition = negateCondition;
+    public Condition(boolean isNegatedCondition) {
+        this.isNegatedCondition = isNegatedCondition;
     }
 
     public Condition() {
@@ -17,5 +17,5 @@ public abstract class Condition<I> implements ITestable<I> {
      *
      * @return negated {@link #testAfter(I)}
      */
-    public abstract <C extends Condition<I>> C negate();
+    public abstract Condition<I> negate();
 }

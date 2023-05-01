@@ -8,6 +8,8 @@ import com.generic.workflow.library.payload.ExecutionPayload;
 import com.generic.workflow.library.utils.ExecutionUtils;
 
 import javax.naming.OperationNotSupportedException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public abstract class Workflow extends AdvancedExecutable {
@@ -23,12 +25,15 @@ public abstract class Workflow extends AdvancedExecutable {
     protected Activity startingActivity;
     protected Condition<ExecutableStatus> defaultCondition;
 
+    protected List<Activity> activityHistory;
+
 
     public Workflow() {
         this.workflowId = ExecutionUtils.newIdForClass(this);
         this.lastActivityOptionAdded = false;
         this.startingActivityReturned = false;
         this.isSuspended = false;
+        this.activityHistory = new ArrayList<>();
     }
 
     /**
@@ -39,6 +44,17 @@ public abstract class Workflow extends AdvancedExecutable {
     @Override
     public final ExecutableStatus status() {
         return this.workflowStatus;
+    }
+
+    /**
+     * Testing if condition satisfies result status!
+     *
+     * @param inputToTest condition to test
+     * @return if condition is satisfied
+     */
+    @Override
+    public boolean testAfter(Condition<ExecutableStatus> inputToTest) {
+        return inputToTest.testAfter(this.status());
     }
 
     /**
@@ -92,8 +108,12 @@ public abstract class Workflow extends AdvancedExecutable {
     @Override
     public final boolean execute(ExecutionPayload<?> payloadInput) throws Exception {
         log.info(String.format("Executing workflow with id: %s", this.workflowId));
+
+        this.workflowStatus = ExecutableStatus.IN_PROGRESS;
         boolean passed = new WorkflowExecutionHandler(this)
                 .execute(payloadInput);
+        this.workflowStatus = passed? ExecutableStatus.FINISHED : ExecutableStatus.FAILED;
+
         log.info(String.format("Finished executing workflow with id: %s - passed? %s", this.workflowId, passed));
         return passed;
     }
@@ -154,7 +174,27 @@ public abstract class Workflow extends AdvancedExecutable {
         return defaultCondition;
     }
 
-    public void setDefaultCondition(Condition<ExecutableStatus> defaultCondition) {
+    public Workflow setDefaultCondition(Condition<ExecutableStatus> defaultCondition) {
         this.defaultCondition = defaultCondition;
+        return this;
+    }
+
+    /**
+     * Returns {@link Activity} from exact history/execution order. Index starts from 0.
+     *
+     * @param index order number of {@link Activity} executed before
+     * @return {@link Activity}
+     */
+    public Activity getActivityFromHistoryOrder(int index) {
+        return this.activityHistory.get(index);
+    }
+
+    /**
+     * Add {@link Activity} to history list.
+     *
+     * @param activity {@link Activity} as history object
+     */
+    public void addNewHistoryActivity(Activity activity) {
+        this.activityHistory.add(activity);
     }
 }

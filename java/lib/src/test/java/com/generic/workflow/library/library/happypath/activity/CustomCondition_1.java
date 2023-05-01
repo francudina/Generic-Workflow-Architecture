@@ -6,8 +6,8 @@ import com.generic.workflow.library.conditions.Condition;
 public class CustomCondition_1 extends Condition<ExecutableStatus> {
 
     @Override
-    public <C extends Condition<ExecutableStatus>> C negate() {
-        return (C) new CustomNegatedCondition();
+    public Condition<ExecutableStatus> negate() {
+        return new CustomNegatedCondition();
     }
 
     @Override

@@ -10,7 +10,7 @@ import java.util.Map;
  *
  * @param <P> generic param used as Input/Output data
  */
-public abstract class ExecutionPayload<P> {
+public class ExecutionPayload<P> {
 
     /**
      * Data used for transfer.
@@ -29,6 +29,8 @@ public abstract class ExecutionPayload<P> {
      * from {@link P} class, and values from those fields.
      */
     public Map<String, Object> toMap() {
+        if (payload instanceof Map<?,?> map)
+            return (Map<String, Object>) map;
         return ExecutionUtils.objectToMap(this.payload);
     }
 }

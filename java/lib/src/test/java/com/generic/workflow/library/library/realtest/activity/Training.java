@@ -4,27 +4,27 @@ import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
 import com.generic.workflow.library.payload.ExecutionPayload;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.Set;
 
-public class Breakfast extends Activity {
+public class Training extends Activity {
 
-    public static final String INPUT_DATETIME = "currentDateTime";
+    public static final String INPUT_EQUIPMENT_SHIRT = "equipmentShirtSize";
+    public static final String INPUT_EQUIPMENT_SHORTS = "equipmentShortsSize";
 
-    private final int startHours;
-    private final int endHours;
+    private final String shirtSize;
+    private final String shortsSize;
 
-    public Breakfast(int breakfastStart, int breakfastEnd) {
-        this.startHours = breakfastStart;
-        this.endHours = breakfastEnd;
+    public Training(String shirtSize, String shortsSize) {
+        this.shirtSize = shirtSize;
+        this.shortsSize = shortsSize;
     }
 
 
     @Override
     public boolean testBefore(ExecutionPayload<?> inputPayload) {
         var required = Set.of(
-                INPUT_DATETIME
+                INPUT_EQUIPMENT_SHIRT,
+                INPUT_EQUIPMENT_SHORTS
         );
         return testBeforeHelper(required, inputPayload);
     }
@@ -35,10 +35,10 @@ public class Breakfast extends Activity {
         var data = inputPayload.toMap();
         this.activityStatus = ExecutableStatus.IN_PROGRESS;
 
-        Instant timestamp = (Instant) data.get(INPUT_DATETIME);
-        var hours = timestamp.atZone(ZoneOffset.UTC).getHour();
+        String shirt = (String) data.get(INPUT_EQUIPMENT_SHIRT);
+        String shorts = (String) data.get(INPUT_EQUIPMENT_SHORTS);
 
-        var result = startHours <= hours && hours <= endHours;
+        var result = shirt.equals(shirtSize) && shorts.equals(shortsSize);
         this.activityStatus = result? ExecutableStatus.FINISHED : ExecutableStatus.FAILED;
 
         return result;
