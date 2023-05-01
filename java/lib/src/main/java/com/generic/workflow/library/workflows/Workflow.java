@@ -4,12 +4,16 @@ import com.generic.workflow.library.AdvancedExecutable;
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
 import com.generic.workflow.library.conditions.Condition;
+import com.generic.workflow.library.payload.ExecutionPayload;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecutable<S> {
+public abstract class Workflow
+        <S extends ExecutableStatus, P extends ExecutionPayload<?>>
+        extends AdvancedExecutable<S, P>
+{
 
     private final Logger log = Logger.getLogger(this.getClass().getName());
 
@@ -19,7 +23,7 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
     protected boolean lastActivityOptionAdded;
     protected boolean startingActivityReturned;
 
-    protected Activity<S> startingActivity;
+    protected Activity<S, P> startingActivity;
     protected Condition<S> defaultCondition;
 
 
@@ -49,9 +53,9 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
      * @return last usable {@link Activity} to continue adding another nodes
      * @throws OperationNotSupportedException @see {@link Activity#build()}
      */
-    public final Activity<S> startWith(Activity<S> activity) throws OperationNotSupportedException {
+    public final Activity<S, P> startWith(Activity<S, P> activity) throws OperationNotSupportedException {
 
-        Activity<S> firstActivity = activity;
+        Activity<S, P> firstActivity = activity;
         // checking if given activity has already another workflow!
         if (activity.hasWorkflow()) {
 
@@ -77,18 +81,20 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return {@link Workflow} of multiple {@link Activity} objects
      */
-    public final Workflow<S> build() {
+    public final Workflow<S, P> build() {
         return this;
     }
 
     /**
      * Executes {@link Workflow} from {@link #startingActivity}.
+     *
+     * @param payloadInput input data for execution
      * @return true if execution succeeded, false otherwise
      */
     @Override
-    public final boolean execute() {
+    public final boolean execute(P payloadInput) {
         log.info(String.format("Executing workflow with id: %s", this.workflowId));
-        boolean passed = new WorkflowExecutionHandler<>(this).execute();
+        boolean passed = new WorkflowExecutionHandler<>(this).execute(payloadInput);
         log.info(String.format("Finished executing workflow with id: %s - passed? %s", this.workflowId, passed));
         return passed;
     }
@@ -98,7 +104,7 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return root/starting {@link Activity} object
      */
-    public Activity<S> root() {
+    public Activity<S, P> root() {
         this.startingActivityReturned = true;
         return this.startingActivity;
     }
@@ -131,7 +137,7 @@ public abstract class Workflow<S extends ExecutableStatus> extends AdvancedExecu
         return this.startingActivityReturned;
     }
 
-    public Activity<S> getStartingActivity() {
+    public Activity<S, P> getStartingActivity() {
         return startingActivity;
     }
 

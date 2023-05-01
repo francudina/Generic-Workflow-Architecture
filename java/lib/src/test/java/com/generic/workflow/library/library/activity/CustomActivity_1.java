@@ -3,11 +3,12 @@ package com.generic.workflow.library.library.activity;
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.activities.Activity;
 import com.generic.workflow.library.conditions.Condition;
+import com.generic.workflow.library.library.payload.CustomPayload;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class CustomActivity_1 extends Activity<ExecutableStatus> {
+public class CustomActivity_1 extends Activity<ExecutableStatus, CustomPayload> {
 
     @Override
     public boolean test() {
@@ -21,7 +22,7 @@ public class CustomActivity_1 extends Activity<ExecutableStatus> {
     }
 
     @Override
-    public boolean execute() {
+    public boolean execute(CustomPayload payloadInput) {
         var date = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
 //        log.info("Executing CustomActivity_1: {}", date);
         return true;

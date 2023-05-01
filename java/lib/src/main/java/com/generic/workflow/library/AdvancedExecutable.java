@@ -2,8 +2,12 @@ package com.generic.workflow.library;
 
 import com.generic.workflow.library.conditions.Condition;
 import com.generic.workflow.library.conditions.ITestable;
+import com.generic.workflow.library.payload.ExecutionPayload;
 
-public abstract class AdvancedExecutable<S extends ExecutableStatus> implements IExecutable, ITestable<Condition<S>> {
+public abstract class AdvancedExecutable
+        <S extends ExecutableStatus, P extends ExecutionPayload<?>>
+        implements IExecutable<P>, ITestable<Condition<S>>
+{
 
     /**
      * Test if {@link IExecutable} instance could be executed.

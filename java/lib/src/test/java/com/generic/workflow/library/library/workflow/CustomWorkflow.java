@@ -2,9 +2,10 @@ package com.generic.workflow.library.library.workflow;
 
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.conditions.Condition;
+import com.generic.workflow.library.library.payload.CustomPayload;
 import com.generic.workflow.library.workflows.Workflow;
 
-public class CustomWorkflow extends Workflow<ExecutableStatus> {
+public class CustomWorkflow extends Workflow<ExecutableStatus, CustomPayload> {
 
     @Override
     public boolean test() {

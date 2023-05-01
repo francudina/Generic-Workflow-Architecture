@@ -3,6 +3,7 @@ package com.generic.workflow.library.activities;
 import com.generic.workflow.library.AdvancedExecutable;
 import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.conditions.Condition;
+import com.generic.workflow.library.payload.ExecutionPayload;
 import com.generic.workflow.library.workflows.Workflow;
 
 import javax.naming.OperationNotSupportedException;
@@ -11,16 +12,20 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecutable<S> {
+public abstract class Activity
+        <S extends ExecutableStatus, P extends ExecutionPayload<?>>
+        extends AdvancedExecutable<S, P>
+{
 
     private final Logger log = Logger.getLogger(this.getClass().getName());
 
     protected String activityId;
     protected S activityStatus;
+    protected P executionResult;
 
-    private Workflow<S> parentWorkflow;
+    private Workflow<S, P> parentWorkflow;
 
-    private final List<ActivityLink<S>> nextActivityOptions;
+    private final List<ActivityLink<S, P>> nextActivityOptions;
 
 
     public Activity() {
@@ -29,17 +34,15 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
     }
 
 
-    private void addNextLink(ActivityLink<S> nextActivityLink) {
-        this.nextActivityOptions.add(nextActivityLink);
-    }
-
     @Override
     public final S status() {
         return this.activityStatus;
     }
 
 
-    public final Activity<S> setOrResetDefaultCondition(Condition<S> defaultCondition) throws OperationNotSupportedException {
+    public final Activity<S, P> setOrResetDefaultCondition(Condition<S> defaultCondition)
+            throws OperationNotSupportedException
+    {
         if (!this.hasWorkflow())
             throw new OperationNotSupportedException("Cannot add default condition to Activity if there's no workflow set!");
 
@@ -53,11 +56,11 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @param workflow {@link Workflow} of current {@link Activity} instance
      */
-    public final void setParentWorkflow(Workflow<S> workflow) {
+    public final void setParentWorkflow(Workflow<S, P> workflow) {
         // setting parent workflow
         this.parentWorkflow = workflow;
         // iterating over children activities and setting new workflow instance!
-        for (ActivityLink<S> link : this.nextActivityOptions) {
+        for (ActivityLink<S, P> link : this.nextActivityOptions) {
             link.getActivity().setParentWorkflow(workflow);
         }
     }
@@ -69,7 +72,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      * @param executeActivity execute next {@link Activity}
      * @return next {@link Activity} to execute
      */
-    public final Activity<S> next(Activity<S> executeActivity) {
+    public final Activity<S, P> next(Activity<S, P> executeActivity) {
 
         if (!this.hasDefaultCondition()) {
             log.warning("Activity ignored because default activity condition isn't set!");
@@ -87,7 +90,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      * @param executeActivity {@link Activity} to execute next based on {@link Condition}
      * @return next {@link Activity} to execute
      */
-    public final Activity<S> next(Condition<S> onCondition, Activity<S> executeActivity) {
+    public final Activity<S, P> next(Condition<S> onCondition, Activity<S, P> executeActivity) {
 
         if (this.isStartingActivityReturned()) {
             log.warning("Starting activity was returned, so there's no way " +
@@ -121,7 +124,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      * @param executeActivity {@link Activity} to execute on fulfilled {@link Condition}
      * @return current (this) {@link Activity}
      */
-    public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity) {
+    public final Activity<S, P> when(Condition<S> onCondition, Activity<S, P> executeActivity) {
 
         if (this.isStartingActivityReturned()) {
             log.warning("Starting activity was returned, so there's no way " +
@@ -155,7 +158,11 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      * @param elseExecuteActivity else {@link Activity} that needs to be executed
      * @return current (this) {@link Activity}
      */
-    public final Activity<S> when(Condition<S> onCondition, Activity<S> executeActivity, Activity<S> elseExecuteActivity) {
+    public final Activity<S, P> when(
+            Condition<S> onCondition,
+            Activity<S, P> executeActivity,
+            Activity<S, P> elseExecuteActivity
+    ) {
 
         if (this.isStartingActivityReturned()) {
             log.warning("Starting activity was returned, so there's no way " +
@@ -186,7 +193,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return {@link Workflow} of multiple {@link Activity} objects
      */
-    public final Workflow<S> build() throws OperationNotSupportedException {
+    public final Workflow<S, P> build() throws OperationNotSupportedException {
         if (!this.hasWorkflow())
             throw new OperationNotSupportedException("Cannot build Activity if there's no workflow set!");
         return this.parentWorkflow.build();
@@ -197,7 +204,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return root/starting {@link Activity} object
      */
-    public final Activity<S> root() throws OperationNotSupportedException {
+    public final Activity<S, P> root() throws OperationNotSupportedException {
         if (!this.hasWorkflow())
             throw new OperationNotSupportedException("Cannot get root Activity if there's no workflow set!");
         return this.parentWorkflow.root();
@@ -212,7 +219,7 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
      *
      * @return last {@link Activity} in the branch
      */
-    public final Activity<S> lastUsableChild() {
+    public final Activity<S, P> lastUsableChild() {
         // checks if current activity has multiple or no children at all
         if (this.hasMoreThanOneChildren() || !this.hasChildren())
             return this;
@@ -223,16 +230,8 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
                 .lastUsableChild();
     }
 
-    private void setLastPossibleActivity() {
-        this.parentWorkflow.setLastPossibleActivity();
-    }
-
-    private boolean isLastActivityOptionAdded() {
-        return this.parentWorkflow != null && this.parentWorkflow.isLastActivityOptionAdded();
-    }
-
-    private boolean isStartingActivityReturned() {
-        return this.parentWorkflow != null && this.parentWorkflow.isStartingActivityReturned();
+    public final P getExecutionResult() {
+        return this.executionResult;
     }
 
     /**
@@ -253,19 +252,35 @@ public abstract class Activity<S extends ExecutableStatus> extends AdvancedExecu
         return this.nextActivityOptions.size() > 0;
     }
 
-    private boolean hasDefaultCondition() {
-        return this.parentWorkflow != null && this.parentWorkflow.getDefaultCondition() != null;
-    }
-
     public final boolean hasWorkflow() {
         return this.parentWorkflow != null;
     }
 
-    public List<ActivityLink<S>> getNextActivityOptions() {
+    public List<ActivityLink<S, P>> getNextActivityOptions() {
         return nextActivityOptions;
     }
 
     public String getActivityId() {
         return activityId;
+    }
+
+    private void setLastPossibleActivity() {
+        this.parentWorkflow.setLastPossibleActivity();
+    }
+
+    private boolean isLastActivityOptionAdded() {
+        return this.parentWorkflow != null && this.parentWorkflow.isLastActivityOptionAdded();
+    }
+
+    private boolean isStartingActivityReturned() {
+        return this.parentWorkflow != null && this.parentWorkflow.isStartingActivityReturned();
+    }
+
+    private void addNextLink(ActivityLink<S, P> nextActivityLink) {
+        this.nextActivityOptions.add(nextActivityLink);
+    }
+
+    private boolean hasDefaultCondition() {
+        return this.parentWorkflow != null && this.parentWorkflow.getDefaultCondition() != null;
     }
 }

@@ -4,15 +4,18 @@ import com.generic.workflow.library.ExecutableStatus;
 import com.generic.workflow.library.IExecutable;
 import com.generic.workflow.library.conditions.Condition;
 import com.generic.workflow.library.conditions.ITestable;
+import com.generic.workflow.library.payload.ExecutionPayload;
 
-public class ActivityLink<S extends ExecutableStatus>
-        implements IExecutable, ITestable<Condition<S>> {
+public class ActivityLink
+        <S extends ExecutableStatus, P extends ExecutionPayload<?>>
+        implements IExecutable<P>, ITestable<Condition<S>>
+{
 
     private final Condition<S> linkCondition;
-    private final Activity<S> activity;
+    private final Activity<S, P> activity;
 
 
-    public ActivityLink(Condition<S> linkConditionToExecuteActivity, Activity<S> activityToExecute) {
+    public ActivityLink(Condition<S> linkConditionToExecuteActivity, Activity<S, P> activityToExecute) {
         this.linkCondition = linkConditionToExecuteActivity;
         this.activity = activityToExecute;
     }
@@ -44,17 +47,17 @@ public class ActivityLink<S extends ExecutableStatus>
      *          false otherwise
      */
     @Override
-    public boolean execute() {
+    public boolean execute(P payloadInput) {
         if (!this.testLink())
             return false;
-        return this.activity.execute();
+        return this.activity.execute(payloadInput);
     }
 
     public Condition<S> getLinkCondition() {
         return linkCondition;
     }
 
-    public Activity<S> getActivity() {
+    public Activity<S, P> getActivity() {
         return activity;
     }
 }
