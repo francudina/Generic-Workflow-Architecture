@@ -8,7 +8,6 @@ on:
 
 jobs:
   build-test:
-    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,5 +16,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name:
-          run: cd java && ./gradlew :lib:test
+      - name: Run Tests
+        run: |
+          cd java 
+          ./gradlew :lib:test
