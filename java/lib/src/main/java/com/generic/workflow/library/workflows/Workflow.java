@@ -189,6 +189,10 @@ public abstract class Workflow extends AdvancedExecutable {
         return this.activityHistory.get(index);
     }
 
+    public int activityHistoryCount() {
+        return this.activityHistory.size();
+    }
+
     /**
      * Add {@link Activity} to history list.
      *

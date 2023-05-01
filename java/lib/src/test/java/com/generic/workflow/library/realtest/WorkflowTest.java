@@ -49,11 +49,15 @@ public class WorkflowTest {
         boolean started = workflow.execute(null);
         boolean workflowPassed = workflow.testAfter(new DefaultFinishedCondition());
 
+        assert started;
+        assert workflowPassed;
+
+        int count = workflow.activityHistoryCount();
+        assert count >= 2;
+
         var breakfast = workflow.getActivityFromHistoryOrder(1);
         boolean activityPassed = breakfast.testAfter(new DefaultFinishedCondition());
 
-        assert started;
-        assert workflowPassed;
         assert !activityPassed;
     }
 
@@ -75,6 +79,14 @@ public class WorkflowTest {
 
         assert started;
         assert passed;
+
+        int count = workflow.activityHistoryCount();
+        assert count >= 3;
+
+        var training = workflow.getActivityFromHistoryOrder(2);
+        boolean activityPassed = training.testAfter(new DefaultFinishedCondition());
+
+        assert activityPassed;
     }
 
     private Activity buildFlow_1(PrepareInformation information) throws Exception {
