@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-test:
     name: Build and Test
     runs-on: ubuntu-latest
     steps:
@@ -18,6 +18,4 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name:
-          run: |
-            cd java
-            ./gradlew :lib:test
+          run: cd java && ./gradlew :lib:test
